@@ -113,7 +113,10 @@
 
             <!-- ================= 1画像モード用コントロール ================= -->
             <div id="controlsMode1" class="space-y-2 pt-3 border-t-2 border-stone-300">
-                <span class="text-xs font-bold text-red-700">【画像の設定】</span>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-red-700">【画像の設定】</span>
+                    <button onclick="clearImage('Single')" class="px-2 py-0.5 bg-stone-200 hover:bg-stone-300 text-stone-700 text-[10px] rounded transition">画像を削除</button>
+                </div>
                 <div>
                     <label class="block text-xs font-medium text-stone-600 mb-1">画像ファイルのアップロード</label>
                     <div class="flex items-center space-x-2">
@@ -154,7 +157,10 @@
             <div id="controlsMode2" class="hidden space-y-3 pt-3 border-t-2 border-stone-300">
                 <!-- 左側設定 -->
                 <div class="space-y-1">
-                    <span class="text-xs font-bold text-red-700">【左側画像】</span>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-red-700">【左側画像】</span>
+                        <button onclick="clearImage('D1')" class="px-2 py-0.5 bg-stone-200 hover:bg-stone-300 text-stone-700 text-[10px] rounded transition">削除</button>
+                    </div>
                     <input type="file" id="imageUploadD1" accept="image/*" onchange="handleImageUpload(event, 'D1')" class="w-full text-xs text-stone-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-red-50 file:text-red-700">
                     <div id="imageScaleContainerD1" class="hidden space-y-1.5 pt-1">
                         <div class="flex items-center justify-between text-[10px] text-stone-600">
@@ -176,7 +182,10 @@
                 </div>
                 <!-- 右側設定 -->
                 <div class="space-y-1 pt-2 border-t border-stone-200">
-                    <span class="text-xs font-bold text-red-700">【右側画像】</span>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-red-700">【右側画像】</span>
+                        <button onclick="clearImage('D2')" class="px-2 py-0.5 bg-stone-200 hover:bg-stone-300 text-stone-700 text-[10px] rounded transition">削除</button>
+                    </div>
                     <input type="file" id="imageUploadD2" accept="image/*" onchange="handleImageUpload(event, 'D2')" class="w-full text-xs text-stone-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-red-50 file:text-red-700">
                     <div id="imageScaleContainerD2" class="hidden space-y-1.5 pt-1">
                         <div class="flex items-center justify-between text-[10px] text-stone-600">
@@ -207,7 +216,10 @@
                     for(let q=1; q<=4; q++) {
                         document.write(`
                             <div class="space-y-1 pt-2 border-t border-stone-200">
-                                <span class="text-[11px] font-semibold text-stone-700">${labels[q-1]}</span>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-semibold text-stone-700">${labels[q-1]}</span>
+                                    <button onclick="clearImage('Q${q}')" class="px-2 py-0.5 bg-stone-200 hover:bg-stone-300 text-stone-700 text-[10px] rounded transition">削除</button>
+                                </div>
                                 <input type="file" id="imageUploadQ${q}" accept="image/*" onchange="handleImageUpload(event, 'Q${q}')" class="w-full text-xs text-stone-500 file:mr-1 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[9px] file:font-semibold file:bg-red-50 file:text-red-700">
                                 <div id="imageScaleContainerQ${q}" class="hidden space-y-1 pt-1">
                                     <div class="flex items-center justify-between text-[9px] text-stone-600">
@@ -243,7 +255,7 @@
 
         <div class="mt-6 text-xs text-stone-500 space-y-1.5 leading-relaxed">
             <p><strong>使い方：</strong></p>
-            <p>コントラストの計算式を修正し、スライダーに応じて適切に濃淡を調整できるように改善いたしました。</p>
+            <p>各画像設定ブロックに「削除」ボタンを追加しました。不要な画像をいつでも簡単にクリアできます。</p>
         </div>
     </div>
 
@@ -320,6 +332,24 @@
             }
         }
 
+        function clearImage(id) {
+            delete originalImages[id];
+
+            const canvas = document.getElementById(`imageCanvas${id}`);
+            const placeholder = document.getElementById(`placeholderText${id}`);
+            const scaleContainer = document.getElementById(`imageScaleContainer${id}`);
+            const uploadInput = document.getElementById(`imageUpload${id}`);
+
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                canvas.classList.add('hidden');
+            }
+            if (placeholder) placeholder.classList.remove('hidden');
+            if (scaleContainer) scaleContainer.classList.add('hidden');
+            if (uploadInput) uploadInput.value = '';
+        }
+
         function updateAllControls() {
             const isInvertRedWhite = document.getElementById('invertRedWhiteCheck').checked;
             const bgColor = isInvertRedWhite ? '#ffffff' : '#c53030';
@@ -392,7 +422,6 @@
             ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
             ctx.restore();
 
-            // ピクセルデータを直接操作して正しいコントラストと反転を適用
             applyPixelFilters(ctx, width, height, contrastVal, isInvertRedWhite);
 
             if (isSharp) {
@@ -400,11 +429,9 @@
             }
         }
 
-        // ピクセル単位の正しいコントラスト・反転処理
         function applyPixelFilters(ctx, width, height, contrast, isInvert) {
             const imageData = ctx.getImageData(0, 0, width, height);
             const data = imageData.data;
-            // contrast値（0〜200、標準100）を倍率に変換
             const c = contrast / 100;
 
             for (let i = 0; i < data.length; i += 4) {
@@ -412,12 +439,10 @@
                 let g = data[i + 1];
                 let b = data[i + 2];
 
-                // 中間値（128）を基準にコントラストを調整
                 r = Math.min(255, Math.max(0, (r - 128) * c + 128));
                 g = Math.min(255, Math.max(0, (g - 128) * c + 128));
                 b = Math.min(255, Math.max(0, (b - 128) * c + 128));
 
-                // 赤白反転
                 if (isInvert) {
                     r = 255 - r;
                     g = 255 - g;
@@ -524,8 +549,8 @@
                 ctx.strokeStyle = bgColor === '#c53030' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.15)';
                 ctx.lineWidth = 1;
                 ctx.beginPath();
-                ctx.moveTo(200, 0); ctx.lineTo(200, 400); // 縦線
-                ctx.moveTo(0, 200); ctx.lineTo(400, 200); // 横線
+                ctx.moveTo(200, 0); ctx.lineTo(200, 400);
+                ctx.moveTo(0, 200); ctx.lineTo(400, 200);
                 ctx.stroke();
             }
 
@@ -544,7 +569,6 @@
             pdf.save(`seal_${currentMode}img_${sealSizeMm}mm.pdf`);
         }
 
-        // プレビューの拡大縮小切り替え
         let toggleState = false;
         function toggleZoomTarget(targetId) {
             const el = document.getElementById(targetId);
@@ -555,7 +579,6 @@
         document.getElementById('sealContainerDual').addEventListener('click', () => toggleZoomTarget('sealContainerDual'));
         document.getElementById('sealContainerQuad').addEventListener('click', () => toggleZoomTarget('sealContainerQuad'));
 
-        // すべてのスライダー要素に対して input イベントを確実に追加
         document.querySelectorAll('input[type="range"]').forEach(input => {
             input.addEventListener('input', (e) => {
                 const idMatch = e.target.id.match(/(Single|D1|D2|Q[1-4])$/);
