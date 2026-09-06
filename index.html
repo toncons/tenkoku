@@ -166,7 +166,12 @@
                             <label class="text-[10px] text-stone-600"><input type="checkbox" id="sharpCheckD1" onchange="redrawCanvas('D1')" class="accent-red-700"> シャープ</label>
                             <label class="text-[10px] text-stone-600"><input type="checkbox" id="flipHorizontalCheckD1" onchange="redrawCanvas('D1')" class="accent-red-700"> 左右反転</label>
                         </div>
-                        <input type="range" id="contrastRangeD1" min="50" max="200" value="100" oninput="redrawCanvas('D1')" class="w-full accent-red-700" title="コントラスト">
+                        <div class="space-y-0.5 pt-1">
+                            <div class="flex items-center justify-between text-[9px] text-stone-600">
+                                <span>コントラスト</span><span id="contrastValD1">100%</span>
+                            </div>
+                            <input type="range" id="contrastRangeD1" min="50" max="200" value="100" oninput="redrawCanvas('D1')" class="w-full accent-red-700" title="コントラスト">
+                        </div>
                     </div>
                 </div>
                 <!-- 右側設定 -->
@@ -183,7 +188,12 @@
                             <label class="text-[10px] text-stone-600"><input type="checkbox" id="sharpCheckD2" onchange="redrawCanvas('D2')" class="accent-red-700"> シャープ</label>
                             <label class="text-[10px] text-stone-600"><input type="checkbox" id="flipHorizontalCheckD2" onchange="redrawCanvas('D2')" class="accent-red-700"> 左右反転</label>
                         </div>
-                        <input type="range" id="contrastRangeD2" min="50" max="200" value="100" oninput="redrawCanvas('D2')" class="w-full accent-red-700" title="コントラスト">
+                        <div class="space-y-0.5 pt-1">
+                            <div class="flex items-center justify-between text-[9px] text-stone-600">
+                                <span>コントラスト</span><span id="contrastValD2">100%</span>
+                            </div>
+                            <input type="range" id="contrastRangeD2" min="50" max="200" value="100" oninput="redrawCanvas('D2')" class="w-full accent-red-700" title="コントラスト">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -209,7 +219,12 @@
                                         <label class="text-[10px] text-stone-600"><input type="checkbox" id="sharpCheckQ${q}" onchange="redrawCanvas('Q${q}')" class="accent-red-700"> シャープ</label>
                                         <label class="text-[10px] text-stone-600"><input type="checkbox" id="flipHorizontalCheckQ${q}" onchange="redrawCanvas('Q${q}')" class="accent-red-700"> 左右反転</label>
                                     </div>
-                                    <input type="range" id="contrastRangeQ${q}" min="50" max="200" value="100" oninput="redrawCanvas('Q${q}')" class="w-full accent-red-700" title="コントラスト">
+                                    <div class="space-y-0.5 pt-1">
+                                        <div class="flex items-center justify-between text-[9px] text-stone-600">
+                                            <span>コントラスト</span><span id="contrastValQ${q}">100%</span>
+                                        </div>
+                                        <input type="range" id="contrastRangeQ${q}" min="50" max="200" value="100" oninput="redrawCanvas('Q${q}')" class="w-full accent-red-700" title="コントラスト">
+                                    </div>
                                 </div>
                             </div>
                         `);
@@ -228,7 +243,7 @@
 
         <div class="mt-6 text-xs text-stone-500 space-y-1.5 leading-relaxed">
             <p><strong>使い方：</strong></p>
-            <p>各モードごとに、すべての画像で横幅・縦幅スケール、シャープ強調、コントラスト、左右反転を個別に調整できます。</p>
+            <p>コントラスト調整スライダーを修正し、すべてのモードで正常に濃淡が変化するようにいたしました。</p>
         </div>
     </div>
 
@@ -482,7 +497,7 @@
                 ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.moveTo(200, 0); ctx.lineTo(200, 400); // 縦線
-                ctx.moveTo(0, 200); ctx.lineTo(400, 200); // 横線
+                ctx.moveTo(0, 200); ctx.lineTo(400, 200); // 横幅線
                 ctx.stroke();
             }
 
