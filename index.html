@@ -145,7 +145,7 @@
                             <span>コントラスト</span>
                             <span id="contrastValSingle">100%</span>
                         </div>
-                        <input type="range" id="contrastRangeSingle" min="50" max="200" value="100" oninput="redrawCanvas('Single')" class="w-full accent-red-700">
+                        <input type="range" id="contrastRangeSingle" min="0" max="200" value="100" oninput="redrawCanvas('Single')" class="w-full accent-red-700">
                     </div>
                 </div>
             </div>
@@ -170,7 +170,7 @@
                             <div class="flex items-center justify-between text-[9px] text-stone-600">
                                 <span>コントラスト</span><span id="contrastValD1">100%</span>
                             </div>
-                            <input type="range" id="contrastRangeD1" min="50" max="200" value="100" oninput="redrawCanvas('D1')" class="w-full accent-red-700" title="コントラスト">
+                            <input type="range" id="contrastRangeD1" min="0" max="200" value="100" oninput="redrawCanvas('D1')" class="w-full accent-red-700" title="コントラスト">
                         </div>
                     </div>
                 </div>
@@ -192,7 +192,7 @@
                             <div class="flex items-center justify-between text-[9px] text-stone-600">
                                 <span>コントラスト</span><span id="contrastValD2">100%</span>
                             </div>
-                            <input type="range" id="contrastRangeD2" min="50" max="200" value="100" oninput="redrawCanvas('D2')" class="w-full accent-red-700" title="コントラスト">
+                            <input type="range" id="contrastRangeD2" min="0" max="200" value="100" oninput="redrawCanvas('D2')" class="w-full accent-red-700" title="コントラスト">
                         </div>
                     </div>
                 </div>
@@ -223,7 +223,7 @@
                                         <div class="flex items-center justify-between text-[9px] text-stone-600">
                                             <span>コントラスト</span><span id="contrastValQ${q}">100%</span>
                                         </div>
-                                        <input type="range" id="contrastRangeQ${q}" min="50" max="200" value="100" oninput="redrawCanvas('Q${q}')" class="w-full accent-red-700" title="コントラスト">
+                                        <input type="range" id="contrastRangeQ${q}" min="0" max="200" value="100" oninput="redrawCanvas('Q${q}')" class="w-full accent-red-700" title="コントラスト">
                                     </div>
                                 </div>
                             </div>
@@ -243,7 +243,7 @@
 
         <div class="mt-6 text-xs text-stone-500 space-y-1.5 leading-relaxed">
             <p><strong>使い方：</strong></p>
-            <p>iPhoneのSafariでも正常に動作するよう、ピクセルデータ直接操作によるコントラスト調整処理へ修正いたしました。</p>
+            <p>コントラストの計算式を修正し、スライダーに応じて適切に濃淡を調整できるように改善いたしました。</p>
         </div>
     </div>
 
@@ -392,7 +392,7 @@
             ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
             ctx.restore();
 
-            // iOS/Safari対応：ピクセルデータを直接操作してコントラストと反転を確実に適用
+            // ピクセルデータを直接操作して正しいコントラストと反転を適用
             applyPixelFilters(ctx, width, height, contrastVal, isInvertRedWhite);
 
             if (isSharp) {
@@ -400,21 +400,22 @@
             }
         }
 
-        // iOS等の環境差異に依存しないピクセル単位のコントラスト・反転処理
+        // ピクセル単位の正しいコントラスト・反転処理
         function applyPixelFilters(ctx, width, height, contrast, isInvert) {
             const imageData = ctx.getImageData(0, 0, width, height);
             const data = imageData.data;
-            const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+            // contrast値（0〜200、標準100）を倍率に変換
+            const c = contrast / 100;
 
             for (let i = 0; i < data.length; i += 4) {
                 let r = data[i];
                 let g = data[i + 1];
                 let b = data[i + 2];
 
-                // コントラスト計算
-                r = Math.min(255, Math.max(0, factor * (r - 128) + 128));
-                g = Math.min(255, Math.max(0, factor * (g - 128) + 128));
-                b = Math.min(255, Math.max(0, factor * (b - 128) + 128));
+                // 中間値（128）を基準にコントラストを調整
+                r = Math.min(255, Math.max(0, (r - 128) * c + 128));
+                g = Math.min(255, Math.max(0, (g - 128) * c + 128));
+                b = Math.min(255, Math.max(0, (b - 128) * c + 128));
 
                 // 赤白反転
                 if (isInvert) {
@@ -554,7 +555,7 @@
         document.getElementById('sealContainerDual').addEventListener('click', () => toggleZoomTarget('sealContainerDual'));
         document.getElementById('sealContainerQuad').addEventListener('click', () => toggleZoomTarget('sealContainerQuad'));
 
-        // すべてのスライダー要素に対して input および change イベントを確実に追加
+        // すべてのスライダー要素に対して input イベントを確実に追加
         document.querySelectorAll('input[type="range"]').forEach(input => {
             input.addEventListener('input', (e) => {
                 const idMatch = e.target.id.match(/(Single|D1|D2|Q[1-4])$/);
