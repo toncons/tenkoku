@@ -156,24 +156,34 @@
                 <div class="space-y-1">
                     <span class="text-xs font-bold text-red-700">【左側画像】</span>
                     <input type="file" id="imageUploadD1" accept="image/*" onchange="handleImageUpload(event, 'D1')" class="w-full text-xs text-stone-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-red-50 file:text-red-700">
-                    <div id="imageScaleContainerD1" class="hidden space-y-1 pt-1">
-                        <input type="range" id="imageScaleXRangeD1" min="20" max="300" value="100" oninput="redrawCanvas('D1')" class="w-full accent-red-700" title="横幅">
-                        <div class="flex items-center justify-between">
-                            <label class="text-[11px] text-stone-600"><input type="checkbox" id="sharpCheckD1" onchange="redrawCanvas('D1')" class="accent-red-700"> シャープ</label>
-                            <label class="text-[11px] text-stone-600"><input type="checkbox" id="flipHorizontalCheckD1" onchange="redrawCanvas('D1')" class="accent-red-700"> 左右反転</label>
+                    <div id="imageScaleContainerD1" class="hidden space-y-1.5 pt-1">
+                        <div class="flex items-center justify-between text-[10px] text-stone-600">
+                            <span>横: <span id="scaleXValD1">100%</span> | 縦: <span id="scaleYValD1">100%</span></span>
                         </div>
+                        <input type="range" id="imageScaleXRangeD1" min="20" max="300" value="100" oninput="redrawCanvas('D1')" class="w-full accent-red-700" title="横幅">
+                        <input type="range" id="imageScaleYRangeD1" min="20" max="300" value="100" oninput="redrawCanvas('D1')" class="w-full accent-red-700" title="縦幅">
+                        <div class="flex items-center justify-between pt-1">
+                            <label class="text-[10px] text-stone-600"><input type="checkbox" id="sharpCheckD1" onchange="redrawCanvas('D1')" class="accent-red-700"> シャープ</label>
+                            <label class="text-[10px] text-stone-600"><input type="checkbox" id="flipHorizontalCheckD1" onchange="redrawCanvas('D1')" class="accent-red-700"> 左右反転</label>
+                        </div>
+                        <input type="range" id="contrastRangeD1" min="50" max="200" value="100" oninput="redrawCanvas('D1')" class="w-full accent-red-700" title="コントラスト">
                     </div>
                 </div>
                 <!-- 右側設定 -->
                 <div class="space-y-1 pt-2 border-t border-stone-200">
                     <span class="text-xs font-bold text-red-700">【右側画像】</span>
                     <input type="file" id="imageUploadD2" accept="image/*" onchange="handleImageUpload(event, 'D2')" class="w-full text-xs text-stone-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-red-50 file:text-red-700">
-                    <div id="imageScaleContainerD2" class="hidden space-y-1 pt-1">
-                        <input type="range" id="imageScaleXRangeD2" min="20" max="300" value="100" oninput="redrawCanvas('D2')" class="w-full accent-red-700" title="横幅">
-                        <div class="flex items-center justify-between">
-                            <label class="text-[11px] text-stone-600"><input type="checkbox" id="sharpCheckD2" onchange="redrawCanvas('D2')" class="accent-red-700"> シャープ</label>
-                            <label class="text-[11px] text-stone-600"><input type="checkbox" id="flipHorizontalCheckD2" onchange="redrawCanvas('D2')" class="accent-red-700"> 左右反転</label>
+                    <div id="imageScaleContainerD2" class="hidden space-y-1.5 pt-1">
+                        <div class="flex items-center justify-between text-[10px] text-stone-600">
+                            <span>横: <span id="scaleXValD2">100%</span> | 縦: <span id="scaleYValD2">100%</span></span>
                         </div>
+                        <input type="range" id="imageScaleXRangeD2" min="20" max="300" value="100" oninput="redrawCanvas('D2')" class="w-full accent-red-700" title="横幅">
+                        <input type="range" id="imageScaleYRangeD2" min="20" max="300" value="100" oninput="redrawCanvas('D2')" class="w-full accent-red-700" title="縦幅">
+                        <div class="flex items-center justify-between pt-1">
+                            <label class="text-[10px] text-stone-600"><input type="checkbox" id="sharpCheckD2" onchange="redrawCanvas('D2')" class="accent-red-700"> シャープ</label>
+                            <label class="text-[10px] text-stone-600"><input type="checkbox" id="flipHorizontalCheckD2" onchange="redrawCanvas('D2')" class="accent-red-700"> 左右反転</label>
+                        </div>
+                        <input type="range" id="contrastRangeD2" min="50" max="200" value="100" oninput="redrawCanvas('D2')" class="w-full accent-red-700" title="コントラスト">
                     </div>
                 </div>
             </div>
@@ -182,7 +192,6 @@
             <div id="controlsMode4" class="hidden space-y-3 pt-3 border-t-2 border-stone-300">
                 <span class="text-xs font-bold text-red-700 block mb-1">【4文字（田の字）の設定】</span>
                 
-                <!-- 各セルの設定ループ用パーツ生成 -->
                 <script>
                     const labels = ['① 上・左', '② 上・右', '③ 下・左', '④ 下・右'];
                     for(let q=1; q<=4; q++) {
@@ -190,9 +199,17 @@
                             <div class="space-y-1 pt-2 border-t border-stone-200">
                                 <span class="text-[11px] font-semibold text-stone-700">${labels[q-1]}</span>
                                 <input type="file" id="imageUploadQ${q}" accept="image/*" onchange="handleImageUpload(event, 'Q${q}')" class="w-full text-xs text-stone-500 file:mr-1 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[9px] file:font-semibold file:bg-red-50 file:text-red-700">
-                                <div id="imageScaleContainerQ${q}" class="hidden flex items-center justify-between pt-1">
-                                    <label class="text-[10px] text-stone-600"><input type="checkbox" id="sharpCheckQ${q}" onchange="redrawCanvas('Q${q}')" class="accent-red-700"> シャープ</label>
-                                    <label class="text-[10px] text-stone-600"><input type="checkbox" id="flipHorizontalCheckQ${q}" onchange="redrawCanvas('Q${q}')" class="accent-red-700"> 左右反転</label>
+                                <div id="imageScaleContainerQ${q}" class="hidden space-y-1 pt-1">
+                                    <div class="flex items-center justify-between text-[9px] text-stone-600">
+                                        <span>横: <span id="scaleXValQ${q}">100%</span> | 縦: <span id="scaleYValQ${q}">100%</span></span>
+                                    </div>
+                                    <input type="range" id="imageScaleXRangeQ${q}" min="20" max="300" value="100" oninput="redrawCanvas('Q${q}')" class="w-full accent-red-700" title="横幅">
+                                    <input type="range" id="imageScaleYRangeQ${q}" min="20" max="300" value="100" oninput="redrawCanvas('Q${q}')" class="w-full accent-red-700" title="縦幅">
+                                    <div class="flex items-center justify-between pt-0.5">
+                                        <label class="text-[10px] text-stone-600"><input type="checkbox" id="sharpCheckQ${q}" onchange="redrawCanvas('Q${q}')" class="accent-red-700"> シャープ</label>
+                                        <label class="text-[10px] text-stone-600"><input type="checkbox" id="flipHorizontalCheckQ${q}" onchange="redrawCanvas('Q${q}')" class="accent-red-700"> 左右反転</label>
+                                    </div>
+                                    <input type="range" id="contrastRangeQ${q}" min="50" max="200" value="100" oninput="redrawCanvas('Q${q}')" class="w-full accent-red-700" title="コントラスト">
                                 </div>
                             </div>
                         `);
@@ -211,7 +228,7 @@
 
         <div class="mt-6 text-xs text-stone-500 space-y-1.5 leading-relaxed">
             <p><strong>使い方：</strong></p>
-            <p>1画像・2画像（左右）・4画像（田の字）のモードを切り替えて、個別に調整・PDF保存が可能です。</p>
+            <p>各モードごとに、すべての画像で横幅・縦幅スケール、シャープ強調、コントラスト、左右反転を個別に調整できます。</p>
         </div>
     </div>
 
@@ -333,10 +350,14 @@
             const scaleY = scaleYEl ? parseInt(scaleYEl.value) / 100 : 1;
             
             const xValEl = document.getElementById(`scaleXVal${id}`);
+            const yValEl = document.getElementById(`scaleYVal${id}`);
             if (xValEl) xValEl.innerText = Math.round(scaleX * 100) + '%';
+            if (yValEl) yValEl.innerText = Math.round(scaleY * 100) + '%';
 
             const contrastRange = document.getElementById(`contrastRange${id}`);
             const contrastVal = contrastRange ? contrastRange.value : 100;
+            const contrastValEl = document.getElementById(`contrastVal${id}`);
+            if (contrastValEl) contrastValEl.innerText = contrastVal + '%';
 
             const isSharp = document.getElementById(`sharpCheck${id}`)?.checked || false;
             const isInvertRedWhite = document.getElementById('invertRedWhiteCheck').checked;
