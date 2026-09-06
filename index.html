@@ -247,7 +247,7 @@
             <!-- Direct PDF Save Button -->
             <div class="pt-3 border-t border-stone-200">
                 <button onclick="downloadSealPDF()" class="w-full py-2.5 bg-red-700 hover:bg-red-800 text-white font-medium rounded-lg text-xs transition shadow-sm active:scale-95">
-                    実寸サイズでPDF出力・保存
+                    実寸サイズでPDF出力・保存（20個配置）
                 </button>
             </div>
 
@@ -255,7 +255,7 @@
 
         <div class="mt-6 text-xs text-stone-500 space-y-1.5 leading-relaxed">
             <p><strong>使い方：</strong></p>
-            <p>各画像設定ブロックに「削除」ボタンを追加しました。不要な画像をいつでも簡単にクリアできます。</p>
+            <p>PDF出力ボタンを押すと、現在のハンコデザインがA4用紙に20個（5列×4行）間隔をあけて綺麗に配置されて保存されます。</p>
         </div>
     </div>
 
@@ -513,10 +513,7 @@
                 format: 'a4'
             });
 
-            const pageWidth = 210;
-            const xPos = (pageWidth - sealSizeMm) / 2;
-            const yPos = 20;
-
+            // 1つのハンコ画像を作成する一時キャンバス
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = 400;
             tempCanvas.height = 400;
@@ -561,12 +558,34 @@
             }
 
             const imgData = tempCanvas.toDataURL('image/png');
-            pdf.addImage(imgData, 'PNG', xPos, yPos, sealSizeMm, sealSizeMm);
 
-            pdf.setFontSize(10);
-            pdf.text(`Seal Output - Actual Size: ${sealSizeMm}mm x ${sealSizeMm}mm`, pageWidth / 2, yPos + sealSizeMm + 10, { align: 'center' });
+            // 20個のハンコをA4に配置（5列 × 4行のグリッドレイアウト）
+            const cols = 5;
+            const rows = 4;
+            const totalStamps = 20;
 
-            pdf.save(`seal_${currentMode}img_${sealSizeMm}mm.pdf`);
+            const startX = 20; // 左マージン (mm)
+            const startY = 20; // 上マージン (mm)
+            const availableW = 170; // 210 - 2 * 20
+            const availableH = 240; // A4高さから上下の余白・説明文を除いた範囲
+
+            const gapX = (availableW - (sealSizeMm * cols)) / (cols - 1);
+            const gapY = (availableH - (sealSizeMm * rows)) / (rows - 1);
+
+            for (let i = 0; i < totalStamps; i++) {
+                const r = Math.floor(i / cols);
+                const c = i % cols;
+                const x = startX + c * (sealSizeMm + gapX);
+                const y = startY + r * (sealSizeMm + gapY);
+
+                pdf.addImage(imgData, 'PNG', x, y, sealSizeMm, sealSizeMm);
+            }
+
+            // フッター説明文
+            pdf.setFontSize(9);
+            pdf.text(`Seal Sheet - Size: ${sealSizeMm}mm x ${sealSizeMm}mm (${totalStamps} stamps)`, 105, 285, { align: 'center' });
+
+            pdf.save(`seal_20stamps_${sealSizeMm}mm.pdf`);
         }
 
         let toggleState = false;
