@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>篆刻画像シミュレーター</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDFライブラリの読み込み -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- iOSホーム画面追加用メタタグ -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="篆刻シミュレーター">
+</head>
+<body class="bg-stone-100 min-h-screen flex flex-col items-center justify-center p-4 text-stone-800 select-none">
+
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-6 border border-stone-200">
+        <header class="text-center mb-3">
+            <h1 class="text-xl font-bold tracking-wider text-stone-900">篆刻画像シミュレーター</h1>
+            <p class="text-xs text-stone-500 mt-1">実寸想定：<span id="displaySize">17</span>mm × <span id="displaySize2">17</span>mm</p>
+        </header>
+
+        <!-- モード切替タブ -->
+        <div class="flex rounded-lg bg-stone-100 p-1 mb-4 text-[11px] font-medium">
+            <button id="modeBtn1" onclick="switchMode(1)" class="flex-1 py-1.5 rounded-md bg-white text-red-700 shadow-sm transition">1画像</button>
+            <button id="modeBtn2" onclick="switchMode(2)" class="flex-1 py-1.5 rounded-md text-stone-600 transition">2画像(左右)</button>
+            <button id="modeBtn4" onclick="switchMode(4)" class="flex-1 py-1.5 rounded-md text-stone-600 transition">4画像(田の字)</button>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="flex flex-col items-center justify-center mb-6">
+            <div class="relative bg-stone-50 border border-stone-200 p-6 rounded-xl shadow-inner flex flex-col items-center justify-center w-full">
+                
+                <!-- 1画像モード用枠 -->
+                <div id="sealContainerSingle" class="relative w-40 h-40 flex items-center justify-center cursor-pointer transition-transform duration-200 shadow-md rounded overflow-hidden p-2 bg-[#c53030]" style="border: none;">
+                    <canvas id="imageCanvasSingle" class="absolute inset-0 w-full h-full pointer-events-none hidden object-cover"></canvas>
+                    <div id="placeholderTextSingle" class="text-white text-xs text-center opacity-70 pointer-events-none p-4 z-10">
+                        画像をアップロード
+                    </div>
+                </div>
+
+                <!-- 2画像モード用枠 -->
+                <div id="sealContainerDual" class="relative w-40 h-40 hidden items-center justify-between cursor-pointer transition-transform duration-200 shadow-md rounded overflow-hidden p-2 bg-[#c53030]" style="border: none;">
+                    <div class="relative w-1/2 h-full flex items-center justify-center overflow-hidden">
+                        <canvas id="imageCanvasD1" class="absolute inset-0 w-full h-full pointer-events-none hidden object-cover"></canvas>
+                        <div id="placeholderTextD1" class="text-white text-[9px] text-center opacity-70 pointer-events-none p-1 z-10">左</div>
+                    </div>
+                    <div class="w-[1px] h-full bg-white opacity-30"></div>
+                    <div class="relative w-1/2 h-full flex items-center justify-center overflow-hidden">
+                        <canvas id="imageCanvasD2" class="absolute inset-0 w-full h-full pointer-events-none hidden object-cover"></canvas>
+                        <div id="placeholderTextD2" class="text-white text-[9px] text-center opacity-70 pointer-events-none p-1 z-10">右</div>
+                    </div>
+                </div>
+
+                <!-- 4画像モード用枠（田の字） -->
+                <div id="sealContainerQuad" class="relative w-40 h-40 hidden flex-col cursor-pointer transition-transform duration-200 shadow-md rounded overflow-hidden p-2 bg-[#c53030]" style="border: none;">
+                    <div class="relative w-full h-1/2 flex items-center justify-between">
+                        <div class="relative w-1/2 h-full flex items-center justify-center overflow-hidden">
+                            <canvas id="imageCanvasQ1" class="absolute inset-0 w-full h-full pointer-events-none hidden object-cover"></canvas>
+                            <div id="placeholderTextQ1" class="text-white text-[8px] text-center opacity-70 pointer-events-none z-10">①</div>
+                        </div>
+                        <div class="w-[1px] h-full bg-white opacity-30"></div>
+                        <div class="relative w-1/2 h-full flex items-center justify-center overflow-hidden">
+                            <canvas id="imageCanvasQ2" class="absolute inset-0 w-full h-full pointer-events-none hidden object-cover"></canvas>
+                            <div id="placeholderTextQ2" class="text-white text-[8px] text-center opacity-70 pointer-events-none z-10">②</div>
+                        </div>
+                    </div>
+                    <div class="w-full h-[1px] bg-white opacity-30"></div>
+                    <div class="relative w-full h-1/2 flex items-center justify-between">
+                        <div class="relative w-1/2 h-full flex items-center justify-center overflow-hidden">
+                            <canvas id="imageCanvasQ3" class="absolute inset-0 w-full h-full pointer-events-none hidden object-cover"></canvas>
+                            <div id="placeholderTextQ3" class="text-white text-[8px] text-center opacity-70 pointer-events-none z-10">③</div>
+                        </div>
+                        <div class="w-[1px] h-full bg-white opacity-30"></div>
+                        <div class="relative w-1/2 h-full flex items-center justify-center overflow-hidden">
+                            <canvas id="imageCanvasQ4" class="absolute inset-0 w-full h-full pointer-events-none hidden object-cover"></canvas>
+                            <div id="placeholderTextQ4" class="text-white text-[8px] text-center opacity-70 pointer-events-none z-10">④</div>
+                        </div>
+                    </div>
+                </div>
+
+                <span id="actualSizeHint" class="text-[10px] text-stone-400 mt-3">※タップで実寸大（17mm）表示切替</span>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="space-y-4 bg-stone-50 p-4 rounded-xl border border-stone-200 text-sm max-h-[380px] overflow-y-auto">
+            
+            <!-- Seal Size Control -->
+            <div class="space-y-1">
+                <label class="block text-xs font-medium text-stone-600">ハンコのサイズ (mm)</label>
+                <div class="flex items-center space-x-2">
+                    <input type="number" id="sealSizeInput" value="17" step="0.1" min="0.5" max="100" oninput="updateSealSize()" class="w-full bg-white border border-stone-300 rounded px-3 py-1.5 text-sm text-stone-800 focus:outline-none focus:border-red-700">
+                    <span class="text-xs text-stone-600">mm</span>
+                </div>
+            </div>
+
+            <!-- Frame Width -->
+            <div class="flex items-center justify-between pt-2 border-t border-stone-200">
+                <span class="text-xs text-stone-600">印の枠線</span>
+                <select id="borderWidth" onchange="updateAllControls()" class="bg-white border border-stone-300 rounded px-2 py-1 text-xs text-stone-700">
+                    <option value="0">枠なし</option>
+                    <option value="2">細めの枠あり</option>
+                    <option value="4">標準枠あり</option>
+                </select>
+            </div>
+
+            <!-- 赤白反転・背景設定 -->
+            <div class="flex items-center justify-between pt-2 border-t border-stone-200">
+                <span class="text-xs text-stone-600">赤白反転（朱文 ⇄ 白文）</span>
+                <input type="checkbox" id="invertRedWhiteCheck" onchange="updateAllControls()" class="w-4 h-4 accent-red-700 rounded cursor-pointer">
+            </div>
+
+            <!-- ================= 1画像モード用コントロール ================= -->
+            <div id="controlsMode1" class="space-y-2 pt-3 border-t-2 border-stone-300">
+                <span class="text-xs font-bold text-red-700">【画像の設定】</span>
+                <div>
+                    <label class="block text-xs font-medium text-stone-600 mb-1">画像ファイルのアップロード</label>
+                    <div class="flex items-center space-x-2">
+                        <input type="file" id="imageUploadSingle" accept="image/*" onchange="handleImageUpload(event, 'Single')" class="w-full text-xs text-stone-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer">
+                    </div>
+                </div>
+
+                <div id="imageScaleContainerSingle" class="hidden space-y-2 pt-1">
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between text-[11px] text-stone-600">
+                            <span>横幅スケール</span>
+                            <span id="scaleXValSingle">100%</span>
+                        </div>
+                        <input type="range" id="imageScaleXRangeSingle" min="20" max="300" value="100" oninput="redrawCanvas('Single')" class="w-full accent-red-700">
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between text-[11px] text-stone-600">
+                            <span>縦幅スケール</span>
+                            <span id="scaleYValSingle">100%</span>
+                        </div>
+                        <input type="range" id="imageScaleYRangeSingle" min="20" max="300" value="100" oninput="redrawCanvas('Single')" class="w-full accent-red-700">
+                    </div>
+                    <div class="flex items-center justify-between pt-1">
+                        <label class="text-xs text-stone-600 flex items-center space-x-1"><input type="checkbox" id="sharpCheckSingle" onchange="redrawCanvas('Single')" class="accent-red-700"> シャープ強調</label>
+                        <label class="text-xs text-stone-600 flex items-center space-x-1"><input type="checkbox" id="flipHorizontalCheckSingle" onchange="redrawCanvas('Single')" class="accent-red-700"> 左右反転</label>
+                    </div>
+                    <div class="space-y-1 pt-1">
+                        <div class="flex items-center justify-between text-[11px] text-stone-600">
+                            <span>コントラスト</span>
+                            <span id="contrastValSingle">100%</span>
+                        </div>
+                        <input type="range" id="contrastRangeSingle" min="50" max="200" value="100" oninput="redrawCanvas('Single')" class="w-full accent-red-700">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= 2画像モード用コントロール ================= -->
+            <div id="controlsMode2" class="hidden space-y-3 pt-3 border-t-2 border-stone-300">
+                <!-- 左側設定 -->
+                <div class="space-y-1">
+                    <span class="text-xs font-bold text-red-700">【左側画像】</span>
+                    <input type="file" id="imageUploadD1" accept="image/*" onchange="handleImageUpload(event, 'D1')" class="w-full text-xs text-stone-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-red-50 file:text-red-700">
+                    <div id="imageScaleContainerD1" class="hidden space-y-1 pt-1">
+                        <input type="range" id="imageScaleXRangeD1" min="20" max="300" value="100" oninput="redrawCanvas('D1')" class="w-full accent-red-700" title="横幅">
+                        <div class="flex items-center justify-between">
+                            <label class="text-[11px] text-stone-600"><input type="checkbox" id="sharpCheckD1" onchange="redrawCanvas('D1')" class="accent-red-700"> シャープ</label>
+                            <label class="text-[11px] text-stone-600"><input type="checkbox" id="flipHorizontalCheckD1" onchange="redrawCanvas('D1')" class="accent-red-700"> 左右反転</label>
+                        </div>
+                    </div>
+                </div>
+                <!-- 右側設定 -->
+                <div class="space-y-1 pt-2 border-t border-stone-200">
+                    <span class="text-xs font-bold text-red-700">【右側画像】</span>
+                    <input type="file" id="imageUploadD2" accept="image/*" onchange="handleImageUpload(event, 'D2')" class="w-full text-xs text-stone-500 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-red-50 file:text-red-700">
+                    <div id="imageScaleContainerD2" class="hidden space-y-1 pt-1">
+                        <input type="range" id="imageScaleXRangeD2" min="20" max="300" value="100" oninput="redrawCanvas('D2')" class="w-full accent-red-700" title="横幅">
+                        <div class="flex items-center justify-between">
+                            <label class="text-[11px] text-stone-600"><input type="checkbox" id="sharpCheckD2" onchange="redrawCanvas('D2')" class="accent-red-700"> シャープ</label>
+                            <label class="text-[11px] text-stone-600"><input type="checkbox" id="flipHorizontalCheckD2" onchange="redrawCanvas('D2')" class="accent-red-700"> 左右反転</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= 4画像モード用コントロール（田の字） ================= -->
+            <div id="controlsMode4" class="hidden space-y-3 pt-3 border-t-2 border-stone-300">
+                <span class="text-xs font-bold text-red-700 block mb-1">【4文字（田の字）の設定】</span>
+                
+                <!-- 各セルの設定ループ用パーツ生成 -->
+                <script>
+                    const labels = ['① 上・左', '② 上・右', '③ 下・左', '④ 下・右'];
+                    for(let q=1; q<=4; q++) {
+                        document.write(`
+                            <div class="space-y-1 pt-2 border-t border-stone-200">
+                                <span class="text-[11px] font-semibold text-stone-700">${labels[q-1]}</span>
+                                <input type="file" id="imageUploadQ${q}" accept="image/*" onchange="handleImageUpload(event, 'Q${q}')" class="w-full text-xs text-stone-500 file:mr-1 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[9px] file:font-semibold file:bg-red-50 file:text-red-700">
+                                <div id="imageScaleContainerQ${q}" class="hidden flex items-center justify-between pt-1">
+                                    <label class="text-[10px] text-stone-600"><input type="checkbox" id="sharpCheckQ${q}" onchange="redrawCanvas('Q${q}')" class="accent-red-700"> シャープ</label>
+                                    <label class="text-[10px] text-stone-600"><input type="checkbox" id="flipHorizontalCheckQ${q}" onchange="redrawCanvas('Q${q}')" class="accent-red-700"> 左右反転</label>
+                                </div>
+                            </div>
+                        `);
+                    }
+                </script>
+            </div>
+
+            <!-- Direct PDF Save Button -->
+            <div class="pt-3 border-t border-stone-200">
+                <button onclick="downloadSealPDF()" class="w-full py-2.5 bg-red-700 hover:bg-red-800 text-white font-medium rounded-lg text-xs transition shadow-sm active:scale-95">
+                    実寸サイズでPDF出力・保存
+                </button>
+            </div>
+
+        </div>
+
+        <div class="mt-6 text-xs text-stone-500 space-y-1.5 leading-relaxed">
+            <p><strong>使い方：</strong></p>
+            <p>1画像・2画像（左右）・4画像（田の字）のモードを切り替えて、個別に調整・PDF保存が可能です。</p>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 1; // 1: 単一, 2: 左右, 4: 田の字
+        let isActualSize = false;
+        let originalImages = {};
+
+        function switchMode(mode) {
+            currentMode = mode;
+            document.getElementById('modeBtn1').className = (mode === 1) ? "flex-1 py-1.5 rounded-md bg-white text-red-700 shadow-sm transition" : "flex-1 py-1.5 rounded-md text-stone-600 transition";
+            document.getElementById('modeBtn2').className = (mode === 2) ? "flex-1 py-1.5 rounded-md bg-white text-red-700 shadow-sm transition" : "flex-1 py-1.5 rounded-md text-stone-600 transition";
+            document.getElementById('modeBtn4').className = (mode === 4) ? "flex-1 py-1.5 rounded-md bg-white text-red-700 shadow-sm transition" : "flex-1 py-1.5 rounded-md text-stone-600 transition";
+
+            const cSingle = document.getElementById('sealContainerSingle');
+            const cDual = document.getElementById('sealContainerDual');
+            const cQuad = document.getElementById('sealContainerQuad');
+
+            const ctrl1 = document.getElementById('controlsMode1');
+            const ctrl2 = document.getElementById('controlsMode2');
+            const ctrl4 = document.getElementById('controlsMode4');
+
+            cSingle.classList.add('hidden'); cSingle.classList.remove('flex');
+            cDual.classList.add('hidden'); cDual.classList.remove('flex');
+            cQuad.classList.add('hidden'); cQuad.classList.remove('flex');
+
+            ctrl1.classList.add('hidden');
+            ctrl2.classList.add('hidden');
+            ctrl4.classList.add('hidden');
+
+            if (mode === 1) {
+                cSingle.classList.remove('hidden'); cSingle.classList.add('flex');
+                ctrl1.classList.remove('hidden');
+            } else if (mode === 2) {
+                cDual.classList.remove('hidden'); cDual.classList.add('flex');
+                ctrl2.classList.remove('hidden');
+            } else if (mode === 4) {
+                cQuad.classList.remove('hidden'); cQuad.classList.add('flex');
+                ctrl4.classList.remove('hidden');
+            }
+            updateAllControls();
+        }
+
+        function updateSealSize() {
+            const size = document.getElementById('sealSizeInput').value || "17";
+            document.getElementById('displaySize').innerText = size;
+            document.getElementById('displaySize2').innerText = size;
+            document.getElementById('actualSizeHint').innerText = `※タップで実寸大（${size}mm）表示切替`;
+        }
+
+        function handleImageUpload(event, id) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        originalImages[id] = img;
+
+                        const canvas = document.getElementById(`imageCanvas${id}`);
+                        const placeholder = document.getElementById(`placeholderText${id}`);
+                        
+                        if (canvas) canvas.classList.remove('hidden');
+                        if (placeholder) placeholder.classList.add('hidden');
+                        
+                        const scaleContainer = document.getElementById(`imageScaleContainer${id}`);
+                        if (scaleContainer) scaleContainer.classList.remove('hidden');
+                        
+                        redrawCanvas(id);
+                    }
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function updateAllControls() {
+            const isInvertRedWhite = document.getElementById('invertRedWhiteCheck').checked;
+            const bgColor = isInvertRedWhite ? '#ffffff' : '#c53030';
+            
+            document.getElementById('sealContainerSingle').style.backgroundColor = bgColor;
+            document.getElementById('sealContainerDual').style.backgroundColor = bgColor;
+            document.getElementById('sealContainerQuad').style.backgroundColor = bgColor;
+
+            updateBorder();
+            
+            if (currentMode === 1 && originalImages['Single']) redrawCanvas('Single');
+            if (currentMode === 2) {
+                if (originalImages['D1']) redrawCanvas('D1');
+                if (originalImages['D2']) redrawCanvas('D2');
+            }
+            if (currentMode === 4) {
+                for(let q=1; q<=4; q++) {
+                    if (originalImages[`Q${q}`]) redrawCanvas(`Q${q}`);
+                }
+            }
+        }
+
+        function redrawCanvas(id) {
+            const img = originalImages[id];
+            if (!img) return;
+
+            const canvas = document.getElementById(`imageCanvas${id}`);
+            if (!canvas) return;
+
+            let width = 400, height = 400;
+            if (currentMode === 2) width = 200;
+            if (currentMode === 4) { width = 200; height = 200; }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            ctx.clearRect(0, 0, width, height);
+
+            const scaleXEl = document.getElementById(`imageScaleXRange${id}`);
+            const scaleYEl = document.getElementById(`imageScaleYRange${id}`);
+            const scaleX = scaleXEl ? parseInt(scaleXEl.value) / 100 : 1;
+            const scaleY = scaleYEl ? parseInt(scaleYEl.value) / 100 : 1;
+            
+            const xValEl = document.getElementById(`scaleXVal${id}`);
+            if (xValEl) xValEl.innerText = Math.round(scaleX * 100) + '%';
+
+            const contrastRange = document.getElementById(`contrastRange${id}`);
+            const contrastVal = contrastRange ? contrastRange.value : 100;
+
+            const isSharp = document.getElementById(`sharpCheck${id}`)?.checked || false;
+            const isInvertRedWhite = document.getElementById('invertRedWhiteCheck').checked;
+            const isFlipHorizontal = document.getElementById(`flipHorizontalCheck${id}`)?.checked || false;
+
+            ctx.save();
+            if (isFlipHorizontal) {
+                ctx.translate(width, 0);
+                ctx.scale(-1, 1);
+            }
+
+            let filters = `contrast(${contrastVal}%)`;
+            if (isInvertRedWhite) {
+                filters += ` invert(100%)`;
+            }
+            ctx.filter = filters;
+
+            const drawWidth = width * scaleX;
+            const drawHeight = height * scaleY;
+            const drawX = (width - drawWidth) / 2;
+            const drawY = (height - drawHeight) / 2;
+
+            ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+            ctx.restore();
+
+            if (isSharp) {
+                applySharpen(ctx, width, height);
+            }
+        }
+
+        function applySharpen(ctx, width, height) {
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+            const w = width, h = height;
+            const kat = [ 0, -1, 0, -1, 5, -1, 0, -1, 0 ];
+
+            const copy = new Uint8ClampedArray(data);
+            for (let y = 1; y < h - 1; y++) {
+                for (let x = 1; x < w - 1; x++) {
+                    let r = 0, g = 0, b = 0;
+                    for (let ky = -1; ky <= 1; ky++) {
+                        for (let kx = -1; kx <= 1; kx++) {
+                            const idx = ((y + ky) * w + (x + kx)) * 4;
+                            const weight = kat[(ky + 1) * 3 + (kx + 1)];
+                            r += copy[idx] * weight;
+                            g += copy[idx + 1] * weight;
+                            b += copy[idx + 2] * weight;
+                        }
+                    }
+                    const idx = (y * w + x) * 4;
+                    data[idx] = Math.min(255, Math.max(0, r));
+                    data[idx + 1] = Math.min(255, Math.max(0, g));
+                    data[idx + 2] = Math.min(255, Math.max(0, b));
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        function updateBorder() {
+            const borderWidth = parseInt(document.getElementById('borderWidth').value);
+            const isInvertRedWhite = document.getElementById('invertRedWhiteCheck').checked;
+            const borderColor = isInvertRedWhite ? '#c53030' : '#9b2c2c';
+
+            ['sealContainerSingle', 'sealContainerDual', 'sealContainerQuad'].forEach(id => {
+                const el = document.getElementById(id);
+                if (borderWidth > 0) {
+                    el.style.border = `${borderWidth}px solid ${borderColor}`;
+                } else {
+                    el.style.border = 'none';
+                }
+            });
+        }
+
+        function downloadSealPDF() {
+            const { jsPDF } = window.jspdf;
+            const sealSizeMm = parseFloat(document.getElementById('sealSizeInput').value) || 17;
+            const isInvertRedWhite = document.getElementById('invertRedWhiteCheck').checked;
+            const borderWidth = parseInt(document.getElementById('borderWidth').value);
+            const borderColor = isInvertRedWhite ? '#c53030' : '#9b2c2c';
+            const bgColor = isInvertRedWhite ? '#ffffff' : '#c53030';
+
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const pageWidth = 210;
+            const xPos = (pageWidth - sealSizeMm) / 2;
+            const yPos = 20;
+
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 400;
+            tempCanvas.height = 400;
+            const ctx = tempCanvas.getContext('2d');
+
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, 400, 400);
+
+            if (currentMode === 1) {
+                const canvasSingle = document.getElementById('imageCanvasSingle');
+                if (originalImages['Single']) ctx.drawImage(canvasSingle, 0, 0);
+            } else if (currentMode === 2) {
+                const canvasD1 = document.getElementById('imageCanvasD1');
+                const canvasD2 = document.getElementById('imageCanvasD2');
+                if (originalImages['D1']) ctx.drawImage(canvasD1, 0, 0, 200, 400, 0, 0, 200, 400);
+                if (originalImages['D2']) ctx.drawImage(canvasD2, 0, 0, 200, 400, 200, 0, 200, 400);
+
+                ctx.strokeStyle = bgColor === '#c53030' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.15)';
+                ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(200, 0); ctx.lineTo(200, 400); ctx.stroke();
+            } else if (currentMode === 4) {
+                for(let q=1; q<=4; q++) {
+                    const canvasQ = document.getElementById(`imageCanvasQ${q}`);
+                    if (originalImages[`Q${q}`]) {
+                        const dx = (q === 2 || q === 4) ? 200 : 0;
+                        const dy = (q === 3 || q === 4) ? 200 : 0;
+                        ctx.drawImage(canvasQ, 0, 0, 200, 200, dx, dy, 200, 200);
+                    }
+                }
+                ctx.strokeStyle = bgColor === '#c53030' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.15)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(200, 0); ctx.lineTo(200, 400); // 縦線
+                ctx.moveTo(0, 200); ctx.lineTo(400, 200); // 横線
+                ctx.stroke();
+            }
+
+            if (borderWidth > 0) {
+                ctx.strokeStyle = borderColor;
+                ctx.lineWidth = borderWidth;
+                ctx.strokeRect(borderWidth / 2, borderWidth / 2, 400 - borderWidth, 400 - borderWidth);
+            }
+
+            const imgData = tempCanvas.toDataURL('image/png');
+            pdf.addImage(imgData, 'PNG', xPos, yPos, sealSizeMm, sealSizeMm);
+
+            pdf.setFontSize(10);
+            pdf.text(`Seal Output - Actual Size: ${sealSizeMm}mm x ${sealSizeMm}mm`, pageWidth / 2, yPos + sealSizeMm + 10, { align: 'center' });
+
+            pdf.save(`seal_${currentMode}img_${sealSizeMm}mm.pdf`);
+        }
+
+        // プレビューの拡大縮小切り替え
+        let toggleState = false;
+        function toggleZoomTarget(targetId) {
+            const el = document.getElementById(targetId);
+            toggleState = !toggleState;
+            el.style.transform = `scale(${toggleState ? '0.15' : '1'})`;
+        }
+        document.getElementById('sealContainerSingle').addEventListener('click', () => toggleZoomTarget('sealContainerSingle'));
+        document.getElementById('sealContainerDual').addEventListener('click', () => toggleZoomTarget('sealContainerDual'));
+        document.getElementById('sealContainerQuad').addEventListener('click', () => toggleZoomTarget('sealContainerQuad'));
+
+        updateSealSize();
+        updateAllControls();
+    </script>
+</body>
+</html>
