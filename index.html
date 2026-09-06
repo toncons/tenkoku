@@ -243,7 +243,7 @@
 
         <div class="mt-6 text-xs text-stone-500 space-y-1.5 leading-relaxed">
             <p><strong>使い方：</strong></p>
-            <p>各画像のスライダー操作によるコントラスト変更が正しくプレビューおよびPDFに反映されるようになりました。</p>
+            <p>iPhoneのSafari環境でもスムーズにコントラスト調整スライダーが動作するようにイベント処理を改善しました。</p>
         </div>
     </div>
 
@@ -526,6 +526,16 @@
         document.getElementById('sealContainerSingle').addEventListener('click', () => toggleZoomTarget('sealContainerSingle'));
         document.getElementById('sealContainerDual').addEventListener('click', () => toggleZoomTarget('sealContainerDual'));
         document.getElementById('sealContainerQuad').addEventListener('click', () => toggleZoomTarget('sealContainerQuad'));
+
+        // すべてのスライダー要素に対して input および change イベントを確実に追加
+        document.querySelectorAll('input[type="range"]').forEach(input => {
+            input.addEventListener('input', (e) => {
+                const idMatch = e.target.id.match(/(Single|D1|D2|Q[1-4])$/);
+                if (idMatch) {
+                    redrawCanvas(idMatch[1]);
+                }
+            });
+        });
 
         updateSealSize();
         updateAllControls();
