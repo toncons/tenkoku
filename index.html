@@ -243,7 +243,7 @@
 
         <div class="mt-6 text-xs text-stone-500 space-y-1.5 leading-relaxed">
             <p><strong>使い方：</strong></p>
-            <p>iPhoneのSafari環境でもスムーズにコントラスト調整スライダーが動作するようにイベント処理を改善しました。</p>
+            <p>iPhoneのSafariでも正常に動作するよう、ピクセルデータ直接操作によるコントラスト調整処理へ修正いたしました。</p>
         </div>
     </div>
 
@@ -370,7 +370,7 @@
             if (yValEl) yValEl.innerText = Math.round(scaleY * 100) + '%';
 
             const contrastRange = document.getElementById(`contrastRange${id}`);
-            const contrastVal = contrastRange ? contrastRange.value : 100;
+            const contrastVal = contrastRange ? parseInt(contrastRange.value) : 100;
             const contrastValEl = document.getElementById(`contrastVal${id}`);
             if (contrastValEl) contrastValEl.innerText = contrastVal + '%';
 
@@ -384,12 +384,6 @@
                 ctx.scale(-1, 1);
             }
 
-            let filters = `contrast(${contrastVal}%)`;
-            if (isInvertRedWhite) {
-                filters += ` invert(100%)`;
-            }
-            ctx.filter = filters;
-
             const drawWidth = width * scaleX;
             const drawHeight = height * scaleY;
             const drawX = (width - drawWidth) / 2;
@@ -398,9 +392,42 @@
             ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
             ctx.restore();
 
+            // iOS/Safari対応：ピクセルデータを直接操作してコントラストと反転を確実に適用
+            applyPixelFilters(ctx, width, height, contrastVal, isInvertRedWhite);
+
             if (isSharp) {
                 applySharpen(ctx, width, height);
             }
+        }
+
+        // iOS等の環境差異に依存しないピクセル単位のコントラスト・反転処理
+        function applyPixelFilters(ctx, width, height, contrast, isInvert) {
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+            const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i];
+                let g = data[i + 1];
+                let b = data[i + 2];
+
+                // コントラスト計算
+                r = Math.min(255, Math.max(0, factor * (r - 128) + 128));
+                g = Math.min(255, Math.max(0, factor * (g - 128) + 128));
+                b = Math.min(255, Math.max(0, factor * (b - 128) + 128));
+
+                // 赤白反転
+                if (isInvert) {
+                    r = 255 - r;
+                    g = 255 - g;
+                    b = 255 - b;
+                }
+
+                data[i] = r;
+                data[i + 1] = g;
+                data[i + 2] = b;
+            }
+            ctx.putImageData(imageData, 0, 0);
         }
 
         function applySharpen(ctx, width, height) {
@@ -497,7 +524,7 @@
                 ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.moveTo(200, 0); ctx.lineTo(200, 400); // 縦線
-                ctx.moveTo(0, 200); ctx.lineTo(400, 200); // 横幅線
+                ctx.moveTo(0, 200); ctx.lineTo(400, 200); // 横線
                 ctx.stroke();
             }
 
